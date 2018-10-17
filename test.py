@@ -97,7 +97,7 @@ def train_and_eval(model, train_data=train_data, eval_data= eval_data, epochs=1)
     return model.evaluate(input_fn=generate_input_fn(eval_data, shuffle=False))
 
 linear_results =  train_and_eval(linear_model, epochs=1)
-print(linear_results)
+print('Linear results:', linear_results)
 
 #define DNN model
 # wrap feature columns in indicator columns so dnn can handle them
@@ -109,7 +109,7 @@ deep_model = tf.estimator.DNNClassifier(
 )
 
 deep_results =  train_and_eval(deep_model, epochs=5)
-print(deep_results)
+print('Deep results:', deep_results)
 
 #make predictions
 animal_type=['Mammal', 'Bird', 'Reptile', 'Fish', 'Amphibian', 'Bug', 'Invertebrate']

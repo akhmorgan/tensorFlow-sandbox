@@ -4,6 +4,9 @@ from tensorflow import keras
 
 # Helper libraries
 import numpy as np
+import pandas as pd
+import math
+import pprint as pp
 import matplotlib.pyplot as plt
 
 print(tf.__version__)
@@ -31,15 +34,34 @@ animal_type=['Mammal', 'Bird', 'Reptile', 'Fish', 'Amphibian', 'Bug', 'Invertebr
 (train_data, train_labels) = preprocess(training_data);
 print("Training entries: {}, labels: {}".format(len(train_data), len(train_labels)))
 
+(eval_data, eval_labels) = preprocess(evaluation_data);
+print("Evaluation entries: {}, labels: {}".format(len(eval_data), len(eval_labels)))
+
 # build the model
 model = keras.Sequential()
+model.add(keras.layers.Dense(30))
+model.add(keras.layers.Dense(20))
+model.add(keras.layers.Dense(10))
 
-#compile the models
+#compile the model
 model.compile(
     optimizer=tf.train.AdamOptimizer(),
     loss='sparse_categorical_crossentropy',
     metrics=['accuracy']
 )
+
 # train the model
 
+
+history = model.fit(train_data.values,
+                    train_labels.values,
+                    epochs=30,
+                    batch_size=32)
+
+print(history)
+
 # evaluate the model
+print("RESULTS:")
+test_loss, test_acc = model.evaluate(eval_data, eval_labels)
+
+print('Test accuracy:', test_acc)
