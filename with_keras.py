@@ -21,15 +21,14 @@ split_index = math.floor(data_total_len*data_train_frac)
 training_data = data.iloc[:split_index]
 evaluation_data = data.iloc[split_index:];
 
-#pp.pprint(data);
-
-#print("FOO: ", data.iloc[:, -1].values)
-#print("BAR: ", data.iloc[:, 17].values)
+column_count = 18;
+label_column_index = 17 # Zero based index (so this is the 18th column)
 
 # preprocess data
 def preprocess(data):
-    features = data.iloc[:, 1:17] #all rows, all the features and no labels
-    labels= data.iloc[:, 17] #all rows, label only
+    features = data.iloc[:, 1:column_count-1] #all rows, all the features and no labels
+    pp.pprint(features.describe());
+    labels= data.iloc[:, label_column_index] #all rows, label only
     labels = labels-1 # shift value range from 1-7 to be 0-6
     return features, labels
 
@@ -64,12 +63,10 @@ print(history)
 
 # evaluate the model
 print("RESULTS:")
-test_loss, test_acc = model.evaluate(np.array(eval_data), np.array(eval_labels))
+test_loss, test_acc = model.evaluate(eval_data, eval_labels)
 
 print('Test accuracy:', test_acc)
 
 # make predictions
-
-print(model.outputs)
 predictions = model.predict(eval_data)
 print(predictions[0])

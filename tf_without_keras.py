@@ -21,8 +21,8 @@ data_total_len = data[data.columns[0]].size
 data_train_frac = 0.6
 split_index = math.floor(data_total_len*data_train_frac)
 
-train_data = data.iloc[:split_index]
-eval_data = data.iloc[split_index:];
+training_data = data.iloc[:split_index]
+evaluation_data = data.iloc[split_index:];
 
 # preprocess data
 def preprocess(data):
@@ -52,6 +52,20 @@ def generate_input_fn(data, batch_size=32, epochs=1, shuffle=True):
         return dataset
     return _input_fn
 
+def generate_input_fn_v2(features, labels, batch_size=12, epochs=1, shuffle=True):
+    def _input_fn():
+        # convert inputs into a TensorFlow dataset
+        dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))
+
+        # shuffle, repeat, and batch the examples
+        if shuffle:
+            dataset = dataset.shuffle(1000)
+        dataset = dataset.repeat(epochs).batch(batch_size)
+
+        # return the Dataset
+        return dataset
+    return _input_fn
+
 # feature columns
 def get_feature_columns(data):
     feature_columns = [
@@ -62,18 +76,18 @@ def get_feature_columns(data):
     ]
     return feature_columns
 
-feature_columns = get_feature_columns(X)
-pp.pprint(feature_columns)
-
 #define linear model
 linear_model = tf.estimator.LinearClassifier(
     feature_columns= get_feature_columns(X),
     n_classes=7
 )
 
+(train_data, train_labels) = preprocess(training_data);
+(eval_data, eval_labels) = preprocess(evaluation_data);
+
 def train_and_eval(model, train_data=train_data, eval_data= eval_data, epochs=1):
-    model.train(input_fn=generate_input_fn(train_data, epochs=epochs))
-    return model.evaluate(input_fn=generate_input_fn(eval_data, shuffle=False))
+    model.train(input_fn=generate_input_fn_v2(train_data,train_labels, epochs=epochs))
+    return model.evaluate(input_fn=generate_input_fn_v2(eval_data,eval_labels, shuffle=False))
 
 linear_results =  train_and_eval(linear_model, epochs=1)
 print('Linear results:', linear_results)
@@ -94,22 +108,10 @@ print('Deep results:', deep_results)
 #make predictions
 animal_type=['Mammal', 'Bird', 'Reptile', 'Fish', 'Amphibian', 'Bug', 'Invertebrate']
 
-predict_data = eval_data
-predictions = deep_model.predict(input_fn=generate_input_fn(predict_data, shuffle=False))
-
-for i, prediction in enumerate(predictions):
-    print(prediction["probabilities"]);
-    #predicted_animal = animal_type[int(prediction["classes"][0].decode("utf8"))]
-    #correct_animal = animal_type[predict_data["class_type"].iloc[i]-1]
-    #print("Predicted: {} \n Actual: {}\n".format(predicted_animal, correct_animal))
+predict_data = evaluation_data
+predictions = deep_model.predict(input_fn=generate_input_fn_v2(predict_data, eval_labels, shuffle=False))
 
 #for i, prediction in enumerate(predictions):
-#    predicted_animal = animal_type[int(prediction["classes"][0].decode("utf8"))]
-#    correct_animal = animal_type[predict_data["class_type"].iloc[i]-1]
-#    if int(prediction["classes"][0].decode("utf8")) != predict_data["class_type"].iloc[i]-1:
-#        print("[WRONG] Predictions: {} with probabilities {}\n Actual answer: {}"
-#        .format(
-#            predicted_animal,
-#            prediction["probabilities"],
-#            correct_animal)
-#        )
+#  predicted_animal = animal_type[int(prediction["classes"][0].decode("utf8"))]
+#  correct_animal = animal_type[predict_data["class_type"].iloc[i]-1]
+#  print("Predicted:   {}\nActual answer:   {}\nProbabilities: {}\n".format(predicted_animal, correct_animal, prediction["probabilities"]))
